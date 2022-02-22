@@ -1,9 +1,15 @@
-import java.io.{DataInputStream, IOException, OutputStream}
+import java.io.{DataInputStream, DataOutputStream, IOException, OutputStream}
 import java.net.Socket
 import java.nio.charset.StandardCharsets
 import java.nio.{ByteBuffer, ByteOrder}
 
 class Connection(socket: Socket) {
+
+
+  // alternative methods to read/write ints and bytes
+  // byte buffer is a newer api (java.nio) than DataInput/OutputStream ... but its never clear if that is good or bad?
+  def toBytes(i: Int): Array[Byte] = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN).putInt(i).array()
+  def toInt(array: Array[Byte]): Int = ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN).getInt
 
   /** Sends a message with correct encoding and so on */
   def send(message: String): Unit = {
@@ -11,12 +17,8 @@ class Connection(socket: Socket) {
     val encodedMessage = message.getBytes(StandardCharsets.UTF_8)
     // length cannot exceed signed int length, so max-unsigned-int is not checked atm
     val length = encodedMessage.length
-    // build unsigned int, as Java does not support unsigned variables
-
-    def toBytes(i: Int) = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN).putInt(i).array()
-
     val out = socket.getOutputStream
-    out.write(toBytes(length))
+    DataOutputStream(out).writeInt(length)
     out.write(encodedMessage)
     out.flush()
   }
@@ -26,6 +28,7 @@ class Connection(socket: Socket) {
     // DataInputStream has some convenience methods
     val in = new DataInputStream(socket.getInputStream)
     // preamble is 4 bytes long
+
     val length = in.readInt()
     // cannot allocate more than Integer.MAX_VALUE array space
     // this is only half of what a message can theoretically be
