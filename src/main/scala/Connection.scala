@@ -1,4 +1,5 @@
 import java.io.{DataInputStream, IOException, OutputStream}
+import java.lang.Integer.toUnsignedLong
 import java.net.Socket
 import java.nio.charset.StandardCharsets
 
@@ -23,12 +24,12 @@ class Connection(socket: Socket) {
   }
 
   /** Receives a message with correct encoding and so on */
-  def receive = { // DataInputStream has some convenience methods
+  def receive() = { // DataInputStream has some convenience methods
     val in = new DataInputStream(socket.getInputStream)
     // preamble is 4 bytes long
     val uInt = in.readInt
     // convert to long for correct unsigned integer value
-    val length = uInt & 0xffffffffL
+    val length = toUnsignedLong(uInt)
     // cannot allocate more than Integer.MAX_VALUE array space
     // this is only half of what a message can theoretically be
     if (length > Integer.MAX_VALUE) { // cannot handle this atm
@@ -40,5 +41,6 @@ class Connection(socket: Socket) {
     // message is utf-8 encoded
     new String(responseBytes, StandardCharsets.UTF_8)
   }
+  
   def close() = socket.close()
 }

@@ -1,4 +1,17 @@
+import upickle.default.ReadWriter
+
 object Messages {
+
+  case class AssignmentMessage(`processing-assignment`: Assignment, processing: List[Processing]) derives ReadWriter
+  case class Assignment(`assignment-id`: String, pipelines: Map[String, PipelineType] = Map.empty) derives ReadWriter
+  case class PipelineType(`type`: String) derives ReadWriter
+  case class Processing(`class`: String, kwargs: ProcessingArgs) derives ReadWriter
+  case class ProcessingArgs(sensor: String, read_delay_ms: Int, out0: String) derives ReadWriter
+
+  case class RemoveMessage(`remove-assignment`: Assignment) derives ReadWriter
+
+  case class RequestMessage(`pipeline-request`: AssignmentReq) derives ReadWriter
+  case class AssignmentReq(`assignment-id`: String, `pipe-id`: String, `time-frame`: Int, `values-per-time-frame`: Int) derives ReadWriter
 
   /** Returns a message string for assigning a SensorRead with choosable sensor kind.
     *
@@ -10,8 +23,10 @@ object Messages {
     * @param sensorKind The kind of sensor which should be read.
     * @return the json encoded message string.
     */
-  def getAssignmentMessage(sensorKind: String) =
-    "{\n" + "  \"processing-assignment\": {\n" + "    \"assignment-id\": \"0\",\n" + "    \"pipelines\": {\n" + "      \"0\": {\"type\": \"output\"}\n" + "    },\n" + "    \"processing\": [\n" + "      {\"class\": \"SensorRead\", \"kwargs\": {\"sensor\": \"" + sensorKind + "\", \"read_delay_ms\": 0, \"out0\": \"0\"}}\n" + "    ]\n" + "  }\n" + "}"
+  def getAssignmentMessage(sensorKind: String): String = upickle.default.write(AssignmentMessage(
+    Assignment("0", Map("0" -> PipelineType("output"))),
+    List(Processing("SensorRead", ProcessingArgs(sensorKind, 0, "0")))
+  ))
 
   /** Returns a message string to remove the SensorRead assignment.
     *
@@ -19,8 +34,7 @@ object Messages {
     *
     * @return the json encoded message string
     */
-  def getRemoveAssignmentMessage =
-    "{\n" + "  \"remove-assignment\": {\n" + "    \"assignment-id\": \"0\"\n" + "  }\n" + "}\n"
+  def getRemoveAssignmentMessage: String = upickle.default.write(RemoveMessage(Assignment("0")))
 
   /** Returns a message to request the pipeline outputting the SensorRead values.
     *
@@ -31,6 +45,5 @@ object Messages {
     *
     * @return the json encoded message string
     */
-  def getPipelineRequestMessage =
-    "{\n" + "  \"pipeline-request\": {\n" + "    \"assignment-id\": \"0\",\n" + "    \"pipe-id\": \"0\",\n" + "    \"time-frame\": 100,\n" + "    \"values-per-time-frame\": 0\n" + "  }\n" + "}\n"
+  def getPipelineRequestMessage: String = upickle.default.write(RequestMessage(AssignmentReq("0", "0", 100, 0)))
 }

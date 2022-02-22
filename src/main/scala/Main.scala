@@ -8,7 +8,7 @@ object Main {
     val python     = new Client(ip, port)
     python.removeAssignment()
     python.distributeAssignment(sensorKind)
-    val pipeline = python.requestPipeline
-    while ({ true }) System.out.println(pipeline.receive)
+    val pipeline = python.requestPipeline()
+    while (true) System.out.println(pipeline.receive())
   }
 }
