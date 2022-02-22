@@ -32,10 +32,8 @@ class Connection(socket: Socket) {
     if (Integer.compareUnsigned(length, Integer.MAX_VALUE) > 0) { // cannot handle this atm
       throw new IOException("Message is longer than " + Integer.MAX_VALUE + " bytes, which is Java array maximum.")
     }
-    val responseBytes = new Array[Byte](length)
-    in.readFully(responseBytes)
     // message is utf-8 encoded
-    new String(responseBytes, StandardCharsets.UTF_8)
+    new String(in.readNBytes(length), StandardCharsets.UTF_8)
   }
 
   def close(): Unit = socket.close()
