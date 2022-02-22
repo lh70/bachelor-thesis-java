@@ -6,5 +6,6 @@ lazy val sensorConnect = project.in(file("."))
     Settings.scalaVersion_3,
     libraryDependencies ++= List(
       upickle.value,
+      "de.tu-darmstadt.stg" %% "rescala" % "0.31.0"
     ),
   )

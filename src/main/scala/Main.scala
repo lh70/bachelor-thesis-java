@@ -1,5 +1,7 @@
 import java.io.IOException
 
+import rescala.default.*
+
 object Main {
   def main(args: Array[String]): Unit = {
     val ip         = "127.0.0.1"
@@ -9,6 +11,12 @@ object Main {
     python.removeAssignment()
     python.distributeAssignment(sensorKind)
     val pipeline = python.requestPipeline()
-    while (true) System.out.println(pipeline.receive())
+
+    val evt = Evt[String]()
+    evt.observe(println)
+
+    while true do
+      val msg = pipeline.receive()
+      evt.fire(msg)
   }
 }
