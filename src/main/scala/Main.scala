@@ -12,11 +12,14 @@ object Main {
     python.distributeAssignment(sensorKind)
     val pipeline = python.requestPipeline()
 
-    val evt = Evt[String]()
+    val evt = Evt[List[Int]]()
     evt.observe(println)
 
     while true do
       val msg = pipeline.receive()
-      evt.fire(msg)
+
+      val values = upickle.default.read[List[Int]](msg)
+
+      evt.fire(values)
   }
 }
