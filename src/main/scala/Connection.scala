@@ -7,15 +7,15 @@ class Connection(socket: Socket) {
   private val in = new InputStreamBuffer(socket.getInputStream)
   private val out = socket.getOutputStream
 
-  def toBytes(i: Int): Array[Byte] = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN).putInt(i).array()
-  def toInt(array: Array[Byte]): Int = ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN).getInt
+  def intToBytes(i: Int): Array[Byte] = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN).putInt(i).array()
+  def bytesToInt(array: Array[Byte]): Int = ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN).getInt
 
   /** Sends a message with correct encoding and so on */
   def send(message: String): Unit = {
     // message must be utf-8 encoded
     val encodedMessage = message.getBytes(StandardCharsets.UTF_8)
     // length cannot exceed signed int length, so max-unsigned-int is not checked atm
-    out.write(toBytes(encodedMessage.length))
+    out.write(intToBytes(encodedMessage.length))
     out.write(encodedMessage)
     out.flush()
   }
@@ -24,7 +24,7 @@ class Connection(socket: Socket) {
   def receive(): String = {
     // preamble is 4 bytes long
     in.readNBytes(4)
-    val length = toInt(in.buffer.slice(0, 4))
+    val length = bytesToInt(in.buffer.slice(0, 4))
     // cannot allocate more than Integer.MAX_VALUE array space
     // this is only half of what a message can theoretically be
     if (Integer.compareUnsigned(length, Integer.MAX_VALUE) > 0) { // cannot handle this atm
