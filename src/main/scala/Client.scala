@@ -21,30 +21,38 @@ class Client(val ip: String, val port: Int) {
   def requestPipeline(): Connection = {
     val conn = new Connection(new Socket(ip, port))
     // Will elevate the current connection to a pipeline connection
-    conn.send(Messages.getPipelineRequestMessage)
+    sendControlMessage(conn, Messages.getPipelineRequestMessage)
     // There will now be a steady stream of values to this socket connection
     conn
   }
 
   /** Convenience method to send a control message the sets the assignment */
-  def distributeAssignment(sensorKind: String): Unit = sendControlMessage(Messages.getAssignmentMessage(sensorKind))
+  def distributeAssignment(sensorKind: String): Unit = {
+    val conn = new Connection(new Socket(ip, port))
+
+    sendControlMessage(conn, Messages.getAssignmentMessage(sensorKind))
+
+    conn.close()
+  }
 
   /** Convenience method to send a control message that removes the assignment */
-  def removeAssignment(): Unit = sendControlMessage(Messages.getRemoveAssignmentMessage)
+  def removeAssignment(): Unit = {
+    val conn = new Connection(new Socket(ip, port))
+
+    sendControlMessage(conn, Messages.getRemoveAssignmentMessage)
+
+    conn.close()
+  }
 
   /** Sends a json control message
     *
     * @param message valid json object string
     * @throws IOException on any communication error
     */
-  def sendControlMessage(message: String): Unit = {
-    val conn = new Connection(new Socket(ip, port))
+  def sendControlMessage(conn: Connection, message: String): Unit = {
     conn.send(message)
     val responseString = conn.receive()
     val response       = upickle.default.read[Response](responseString)
     if (response.ack != 1) throw new IOException("Ack failed. Return object is unexpected: " + response)
-    // connection is not needed afterwards
-    // counting on intelligent java garbage collector to close socket on error
-    conn.close()
   }
 }

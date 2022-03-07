@@ -21,21 +21,27 @@ object Messages {
    * @param processing a list of processing steps to execute in this assignment. Steps are executed in list order.
    * @param pipelines map(id->pipeline) defines the pipelines interconnecting the processing steps and the outward and inward pipelines.
    */
-  case class Assignment(`assignment-id`: String, processing: List[ProcessingNode]=List.empty, pipelines: Map[String, OutputPipeline]=Map.empty) derives ReadWriter
+  case class Assignment(`assignment-id`: String, processing: List[ProcessingNode], pipelines: Map[String, OutputPipeline]) derives ReadWriter
+  object Assignment {
+    def apply(`assignment-id`: String): Assignment = Assignment(`assignment-id`, List.empty, Map.empty)
+  }
 
   /** Defines an output pipeline in an assignment. There can be input, local and output pipelines. input and local are currently not supported by this port.
    *
    */
-  case class OutputPipeline(`type`: String="output") derives ReadWriter
+  case class OutputPipeline(`type`: String) derives ReadWriter
+  object OutputPipeline {
+    def apply(): OutputPipeline = OutputPipeline("output")
+  }
 
   /** Defines a node with python code that should be executed
    *
    *
-   * @param `func-name` name of the function, defined in the code string, that should be imported as the node
+   * @param func_name name of the function, defined in the code string, that should be imported as the node
    * @param kwargs keyword arguments, map(parameter-name -> value), of the function
    * @param code the code string, containing the python function definition
    */
-  case class ProcessingNode(`func-name`: String, kwargs: SensorReadKwargs, code: String) derives ReadWriter
+  case class ProcessingNode(func_name: String, kwargs: SensorReadKwargs, code: String) derives ReadWriter
 
   /** Map(parameter -> value) for the sensor_read function
    *
@@ -59,7 +65,10 @@ object Messages {
    * @param `pipe-id` the id of the output pipeline
    * @param `time-frame` the time interval at which aggregated values should be pushed into the pipeline
    */
-  case class RequestInputPipelineDef(`assignment-id`: String, `pipe-id`: String, `time-frame`: Int, `values-per-time-frame`: Int = 0) derives ReadWriter
+  case class RequestInputPipelineDef(`assignment-id`: String, `pipe-id`: String, `time-frame`: Int, `values-per-time-frame`: Int) derives ReadWriter
+  object RequestInputPipelineDef {
+    def apply(`assignment-id`: String, `pipe-id`: String, `time-frame`: Int): RequestInputPipelineDef = RequestInputPipelineDef(`assignment-id`, `pipe-id`, `time-frame`, 0)
+  }
 
 
 
