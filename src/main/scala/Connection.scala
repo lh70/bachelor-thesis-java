@@ -3,12 +3,27 @@ import java.net.Socket
 import java.nio.charset.StandardCharsets
 import java.nio.{ByteBuffer, ByteOrder}
 
+
+case class Response(ack: Int) derives upickle.default.ReadWriter
+
 class Connection(socket: Socket) {
   private val in = new InputStreamBuffer(socket.getInputStream)
   private val out = socket.getOutputStream
 
   def intToBytes(i: Int): Array[Byte] = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN).putInt(i).array()
   def bytesToInt(array: Array[Byte]): Int = ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN).getInt
+
+  /** Sends a json control message
+   *
+   * @param message valid json object string
+   * @throws IOException on any communication error
+   */
+  def sendControlMessage(message: String): Unit = {
+    send(message)
+    val responseString = receive()
+    val response       = upickle.default.read[Response](responseString)
+    if (response.ack != 1) throw new IOException("Ack failed. Return object is unexpected: " + response)
+  }
 
   /** Sends a message with correct encoding and so on */
   def send(message: String): Unit = {
