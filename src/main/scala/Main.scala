@@ -2,19 +2,29 @@ import java.io.IOException
 import rescala.default.*
 
 import java.net.Socket
+import lib.graph.Graph
+import lib.graph.objects.{Device, Node, ScalaSinkDevice, ScalaSinkNode}
+import ujson.Obj
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val ip         = "192.168.2.163"
-    val port       = 8090
+    val pc = Device()
+    val scalaSink = ScalaSinkDevice()
 
-    val conn = new Connection(new Socket(ip, port))
+    val n1 = Node(pc, "sensor_read", lib.Messages.SensorReadNodePythonCode, List(), Obj("sensor" -> "dummy", "read_delay_ms" -> 0))
 
-    conn.sendControlMessage(Messages.getRemoveAssignmentMessage("A0"))
+    val n2 = ScalaSinkNode(scalaSink, List(n1))
 
-    conn.sendControlMessage(Messages.getAddAssignmentMessage("A0", "dummy"))
+    val (orderedDevices, distribution) = Graph.buildDistribution("A0")
 
-    conn.sendControlMessage(Messages.getRequestPipelineMessage("A0", 100))
+    for (device <- orderedDevices) {
+      device.removeAssignment("A0")
+      device.addAssignment(distribution)
+    }
+
+    // we only have one pipeline (currently there would be also no way of knowing which pipeline is which on multiple input pipelines)
+    val conn = scalaSink.pipelines.values.head
+
 
     val evt = Evt[List[Int]]()
     evt.observe((e:List[Int]) => println(e.length))

@@ -1,3 +1,5 @@
+package lib
+
 import java.io.{IOException, InputStream, OutputStream}
 import java.net.Socket
 import java.nio.charset.StandardCharsets
