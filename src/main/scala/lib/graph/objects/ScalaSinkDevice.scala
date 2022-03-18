@@ -26,7 +26,15 @@ class ScalaSinkDevice(maxTimeFrame: Int = 100, maxValuesPerTimeFrame: Int = 0) e
       val conn = new Connection(new Socket(pipelineHost, pipelinePort))
 
       conn.sendControlMessage(ujson.write(
-        lib.Messages.message("pipeline_request", lib.Messages.requestPipeline(assignmentId, pipelineId, pipelineTimeFrame))
+        Obj(
+          "type" -> "pipeline_request",
+          "content" -> Obj(
+            "assignment_id"         -> assignmentId,
+            "pipe_id"               -> pipelineId,
+            "time_frame"            -> pipelineTimeFrame,
+            "values_per_time_frame" -> 0
+          )
+        )
       ))
 
       pipelines(pipelineId) = conn

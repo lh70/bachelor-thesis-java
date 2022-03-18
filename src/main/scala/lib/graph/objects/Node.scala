@@ -1,11 +1,12 @@
 package lib.graph.objects
 
+import lib.PythonFunctions.PythonFunction
 import ujson.Obj
 
 import scala.collection.mutable
 
 // kwargs are not allowed to use parameter names that begin with "in" or "out". "storage" is also a reserved parameter.
-class Node(val device: Device, val func_name: String, val func_code: String, inputs: List[Node], val kwargs: Obj) {
+class Node(val device: Device, val pythonFunction: PythonFunction, inputs: List[Node]) {
 
   val edges: mutable.Map[String, Edge] = mutable.Map()
 
@@ -37,14 +38,14 @@ class Node(val device: Device, val func_name: String, val func_code: String, inp
   }
 
   def getSerializable: Obj = {
-    val serializable_kwargs = ujson.copy(kwargs)
+    val serializable_kwargs = ujson.copy(pythonFunction.kwargs)
 
     // kwargs are not allowed to use parameter names that begin with "in" or "out". "storage" is also a reserved parameter.
     for ((k, v) <- edges) {
       serializable_kwargs(k) = v.id
     }
 
-    Obj("func_name" -> func_name, "kwargs" -> serializable_kwargs, "code" -> func_code)
+    Obj("func_name" -> pythonFunction.name, "kwargs" -> serializable_kwargs, "code" -> pythonFunction.code)
   }
 }
 object Node {

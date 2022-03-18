@@ -4,6 +4,7 @@ import rescala.default.*
 import java.net.Socket
 import lib.graph.Graph
 import lib.graph.objects.{Device, Node, ScalaSinkDevice, ScalaSinkNode}
+import lib.PythonFunctions.{PYTHON_FUNCTIONS_PATH, SensorRead}
 import ujson.Obj
 
 object Main {
@@ -11,7 +12,7 @@ object Main {
     val pc = Device()
     val scalaSink = ScalaSinkDevice()
 
-    val n1 = Node(pc, "sensor_read", lib.Messages.SensorReadNodePythonCode, List(), Obj("sensor" -> "dummy", "read_delay_ms" -> 0))
+    val n1 = Node(pc, SensorRead("dummy"), List())
 
     val n2 = ScalaSinkNode(scalaSink, List(n1))
 

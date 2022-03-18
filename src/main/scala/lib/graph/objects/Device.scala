@@ -28,7 +28,7 @@ class Device(val host: String = "localhost", val port: Int = 8090, val maxTimeFr
     val conn = new Connection(new Socket(host, port))
 
     conn.sendControlMessage(ujson.write(
-      lib.Messages.message("remove_assignment", lib.Messages.emptyAssignment(assignmentId))
+      Obj("type" -> "remove_assignment", "content" -> Obj("id" -> assignmentId))
     ))
 
     conn.close()
@@ -38,7 +38,7 @@ class Device(val host: String = "localhost", val port: Int = 8090, val maxTimeFr
     val conn = new Connection(new Socket(host, port))
 
     conn.sendControlMessage(ujson.write(
-      lib.Messages.message("add_assignment", distribution(this))
+      Obj("type" -> "add_assignment", "content" -> distribution(this))
     ))
 
     conn.close()
