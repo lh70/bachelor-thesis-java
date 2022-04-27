@@ -5,13 +5,7 @@ import ujson.Obj
 import java.net.Socket
 import scala.collection.mutable
 
-object ScalaSinkDevice {
-  def apply(maxTimeFrame: Int = 100, maxValuesPerTimeFrame: Int = 0): ScalaSinkDevice = {
-    Device.register(new ScalaSinkDevice(maxTimeFrame, maxValuesPerTimeFrame))
-  }
-}
-
-class ScalaSinkDevice private (maxTimeFrame: Int, maxValuesPerTimeFrame: Int)
+class ScalaSinkDevice(maxTimeFrame: Int  = 100, maxValuesPerTimeFrame: Int  = 0)
     extends Device(port = -1, maxTimeFrame = maxTimeFrame, maxValuesPerTimeFrame = maxValuesPerTimeFrame) {
 
   val pipelines: mutable.Map[String, Connection] = mutable.Map()

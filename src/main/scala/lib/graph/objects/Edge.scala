@@ -4,16 +4,11 @@ import ujson.Obj
 
 import scala.collection.mutable.ListBuffer
 
-
-class Edge(val nodeFrom: Node, val nodeTo: Node) {
-  val id: String = Edge.idCounter.toString
-  Edge.idCounter += 1
-
-  Edge.instances += this
+case class Edge(nodeFrom: Node, nodeTo: Node, id: String) {
 
   def getSerializable: (Device, Obj, Device, Obj) = {
     val pipelineFromDevice = Obj()
-    val pipelineToDevice = Obj()
+    val pipelineToDevice   = Obj()
 
     if (nodeFrom.device == nodeTo.device) {
       pipelineFromDevice("type") = "local"
@@ -38,6 +33,12 @@ class Edge(val nodeFrom: Node, val nodeTo: Node) {
   }
 }
 object Edge {
-  val instances: ListBuffer[Edge] = ListBuffer()
-  private var idCounter: Int = 0
+
+  def apply(nodeFrom: Node, nodeTo: Node): Edge = new Edge(nodeFrom, nodeTo, nextId)
+  private var idCounter: Int      = 0
+
+  def nextId =
+    val res = Edge.idCounter.toString
+    Edge.idCounter += 1
+    res
 }

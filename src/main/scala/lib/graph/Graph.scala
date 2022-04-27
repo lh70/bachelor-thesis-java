@@ -6,7 +6,8 @@ import ujson.{Arr, Obj}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class Graph(val devices: List[Device], val edges: List[Edge], val nodes: List[Node]) {
+class Graph(val devices: List[Device], val nodes: List[Node]) {
+  val edges: List[Edge] = nodes.flatMap(_.edges.values).distinct
 
   def buildDistribution(assignmentId: String): (List[objects.Device], mutable.Map[objects.Device, Obj]) = {
     val distribution: mutable.Map[objects.Device, Obj] = mutable.Map()

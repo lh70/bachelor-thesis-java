@@ -5,6 +5,10 @@ import ujson.Obj
 
 import scala.collection.mutable
 
+object Node {
+  def scalaSink(device: Device, inputs: Node*): Node = Node(device, PythonFunction("dummy"), inputs: _*)
+}
+
 // kwargs are not allowed to use parameter names that begin with "in" or "out". "storage" is also a reserved parameter.
 class Node(val device: Device, val pythonFunction: PythonFunction, inputs: Node*) {
 
@@ -27,8 +31,6 @@ class Node(val device: Device, val pythonFunction: PythonFunction, inputs: Node*
     node.edges(param) = edge
   }
 
-  Node.instances += this
-
   private def findNextUnusedKey(string: String, map: mutable.Map[String, Edge]): String = {
     var idx = 0
     while (map.contains(string + idx.toString)) {
@@ -48,6 +50,4 @@ class Node(val device: Device, val pythonFunction: PythonFunction, inputs: Node*
     Obj("func_name" -> pythonFunction.name, "kwargs" -> serializable_kwargs, "code" -> pythonFunction.code)
   }
 }
-object Node {
-  val instances: mutable.ListBuffer[Node] = mutable.ListBuffer()
-}
+

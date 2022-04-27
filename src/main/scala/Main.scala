@@ -8,24 +8,21 @@ import java.io.IOException
 import java.net.Socket
 import scala.util.Try
 
-def clear(): Unit = {
-  Device.instances.clear()
-  Node.instances.clear()
-  Edge.instances.clear()
-}
-
 object Main {
   def main(args: Array[String]): Unit = {
     val pc        = Device()
     val scalaSink = ScalaSinkDevice()
 
+    val devices = List(pc, scalaSink)
+    Device.assertAllDiffer(devices)
+
     val n1 = Node(pc, SensorRead("dummy"))
-    val n2 = Node(scalaSink, PythonFunction("dummy"), n1)
+    val n2 = Node.scalaSink(scalaSink, n1)
 
     val distId = "A0"
 
     val (orderedDevices, assignments) =
-      new Graph(Device.instances.toList, Edge.instances.toList, Node.instances.toList)
+      new Graph(devices, List(n1, n2))
         .buildDistribution(distId)
 
     for (device <- orderedDevices) {

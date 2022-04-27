@@ -4,10 +4,11 @@ import lib.Connection
 import ujson.Obj
 
 import java.net.Socket
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class Device protected (
+class Device(
     val host: String = "localhost",
     val port: Int = 8090,
     val maxTimeFrame: Int = 100,
@@ -43,25 +44,20 @@ class Device protected (
 
 object Device {
 
-  def apply(
-      host: String = "localhost",
-      port: Int = 8090,
-      maxTimeFrame: Int = 100,
-      maxValuesPerTimeFrame: Int = 0
-  ): Device = register(new Device(host, port, maxTimeFrame, maxValuesPerTimeFrame))
+  @tailrec
+  def assertAllDiffer(devices: List[Device]): Unit = devices match
+    case d1 :: rest =>
+      rest.foreach(assertDifferent(d1))
+      assertAllDiffer(rest)
+    case Nil =>
 
-  def register(d: Device): d.type =
-    for (device <- Device.instances) {
-      if (device.host == d.host && device.port == d.port) {
-        throw Exception(
-          "Devices " + device.id + " and " + d.id + "have the same host:port (" + d.host + ":" + d.port + ") configuration"
-        )
-      }
+  def assertDifferent(d1: Device)(d2: Device): Unit = {
+    if (d1.host == d2.host && d1.port == d2.port) {
+      throw Exception(
+        "Devices " + d1.id + " and " + d2.id + "have the same host:port (" + d2.host + ":" + d2.port + ") configuration"
+      )
     }
-    instances += d
-    d
-
-  val instances: ListBuffer[Device] = ListBuffer()
+  }
 
   private var counter: Int = 0
   def nextID: Int =
