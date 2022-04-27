@@ -5,7 +5,14 @@ import ujson.Obj
 import java.net.Socket
 import scala.collection.mutable
 
-class ScalaSinkDevice(maxTimeFrame: Int = 100, maxValuesPerTimeFrame: Int = 0) extends Device(port = -1, maxTimeFrame = maxTimeFrame, maxValuesPerTimeFrame = maxValuesPerTimeFrame) {
+object ScalaSinkDevice {
+  def apply(maxTimeFrame: Int = 100, maxValuesPerTimeFrame: Int = 0): ScalaSinkDevice = {
+    Device.register(new ScalaSinkDevice(maxTimeFrame, maxValuesPerTimeFrame))
+  }
+}
+
+class ScalaSinkDevice private (maxTimeFrame: Int, maxValuesPerTimeFrame: Int)
+    extends Device(port = -1, maxTimeFrame = maxTimeFrame, maxValuesPerTimeFrame = maxValuesPerTimeFrame) {
 
   val pipelines: mutable.Map[String, Connection] = mutable.Map()
 
@@ -13,14 +20,13 @@ class ScalaSinkDevice(maxTimeFrame: Int = 100, maxValuesPerTimeFrame: Int = 0) e
     // Do nothing
   }
 
-  override def addAssignment(distribution: mutable.Map[Device, Obj]): Unit = {
-    val assignment = distribution(this)
+  override def addAssignment(assignment: Obj): Unit = {
 
     val assignmentId = assignment("id").value.asInstanceOf[String]
 
     for ((pipelineId, info) <- assignment("pipelines").obj) {
-      val pipelineHost = info("host").str
-      val pipelinePort = info("port").num.toInt
+      val pipelineHost      = info("host").str
+      val pipelinePort      = info("port").num.toInt
       val pipelineTimeFrame = info("time_frame").num.toInt
 
       val conn = new Connection(new Socket(pipelineHost, pipelinePort))
@@ -34,6 +40,12 @@ class ScalaSinkDevice(maxTimeFrame: Int = 100, maxValuesPerTimeFrame: Int = 0) e
             "time_frame"            -> pipelineTimeFrame,
             "values_per_time_frame" -> 0
           )
+        )
+      ))
+
+      conn.sendControlMessage(ujson.write(
+        Obj(
+          "type" -> "assignment_initialization",
         )
       ))
 

@@ -6,7 +6,7 @@ import ujson.Obj
 import scala.collection.mutable
 
 // kwargs are not allowed to use parameter names that begin with "in" or "out". "storage" is also a reserved parameter.
-class Node(val device: Device, val pythonFunction: PythonFunction, inputs: List[Node]) {
+class Node(val device: Device, val pythonFunction: PythonFunction, inputs: Node*) {
 
   val edges: mutable.Map[String, Edge] = mutable.Map()
 

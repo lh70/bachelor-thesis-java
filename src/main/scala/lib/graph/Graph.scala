@@ -1,21 +1,17 @@
 package lib.graph
 
+import lib.graph.objects.{Device, Edge, Node}
 import ujson.{Arr, Obj}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
-object Graph {
-
-  def clear(): Unit = {
-    objects.Device.instances.clear()
-    objects.Edge.instances.clear()
-    objects.Node.instances.clear()
-  }
+class Graph(val devices: List[Device], val edges: List[Edge], val nodes: List[Node]) {
 
   def buildDistribution(assignmentId: String): (List[objects.Device], mutable.Map[objects.Device, Obj]) = {
     val distribution: mutable.Map[objects.Device, Obj] = mutable.Map()
 
-    for (device <- objects.Device.instances) {
+    for (device <- devices) {
       distribution(device) = Obj("id" -> assignmentId, "pipelines" -> Obj(), "processing" -> Arr())
     }
 
@@ -28,7 +24,7 @@ object Graph {
 
   private def _buildProcessing(distribution: mutable.Map[objects.Device, Obj]): List[objects.Device] = {
     // get a topological correct order of the nodes
-    val (orderedDevices, orderedNodes) = Ordering.topologicalSort
+    val (orderedDevices, orderedNodes) = Ordering.topologicalSort(nodes)
 
     for (node <- orderedNodes) {
       distribution(node.device)("processing").arr += node.getSerializable
@@ -38,7 +34,7 @@ object Graph {
   }
 
   private def _buildPipelines(distribution: mutable.Map[objects.Device, Obj]): Unit = {
-    for (edge <- objects.Edge.instances) {
+    for (edge <- edges) {
       val (deviceFrom, pipelineFrom, deviceTo, pipelineTo) = edge.getSerializable
 
       distribution(deviceFrom)("pipelines").obj(edge.id) = pipelineFrom

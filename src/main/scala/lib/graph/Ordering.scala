@@ -1,5 +1,8 @@
 package lib.graph
 
+import lib.graph.objects.Node
+import lib.graph.objects
+
 import scala.collection.mutable
 
 object Ordering {
@@ -10,15 +13,15 @@ object Ordering {
   // dict to store visited information about each node
   private val visited: mutable.Map[objects.Node, Boolean] = mutable.Map()
 
-  def topologicalSort: (List[objects.Device], List[objects.Node]) = {
+  def topologicalSort(nodes: List[Node]): (List[objects.Device], List[objects.Node]) = {
     node_stack.clear()
     device_stack.clear()
     visited.clear()
 
-    for (node <- objects.Node.instances) visited(node) = false
+    for (node <- nodes) visited(node) = false
 
     // simply iterate over all nodes. Gives one possible topologically correct order.
-    for (node <- objects.Node.instances) {
+    for (node <- nodes) {
       if (!visited(node)) {
         recursiveUtil(node)
       }
