@@ -1,4 +1,4 @@
-import lib.PythonFunctions.{PYTHON_FUNCTIONS_PATH, PythonFunction, SensorRead}
+import lib.PythonUserNodes.{PYTHON_USER_NODES_PATH, PythonUserNode, SensorRead}
 import lib.graph.{Graph, objects}
 import lib.graph.objects.{Device, Edge, Node, ScalaSinkDevice}
 import rescala.default.*
@@ -16,7 +16,7 @@ object Main {
     val devices = List(pc, scalaSink)
     Device.assertAllDiffer(devices)
 
-    val n1 = Node(pc, SensorRead("dummy"))
+    val n1 = Node(pc, SensorRead("Dummy"))
     val n2 = Node.scalaSink(scalaSink, n1)
 
     val distId = "A0"

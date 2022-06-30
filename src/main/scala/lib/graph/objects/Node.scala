@@ -1,16 +1,16 @@
 package lib.graph.objects
 
-import lib.PythonFunctions.PythonFunction
+import lib.PythonUserNodes.PythonUserNode
 import ujson.Obj
 
 import scala.collection.mutable
 
 object Node {
-  def scalaSink(device: Device, inputs: Node*): Node = Node(device, PythonFunction("dummy"), inputs: _*)
+  def scalaSink(device: Device, inputs: Node*): Node = Node(device, PythonUserNode("dummy"), inputs: _*)
 }
 
-// kwargs are not allowed to use parameter names that begin with "in" or "out". "storage" is also a reserved parameter.
-class Node(val device: Device, val pythonFunction: PythonFunction, inputs: Node*) {
+// kwargs are not allowed to use parameter names that begin with "in" or "out".
+class Node(val device: Device, val pythonUserNode: PythonUserNode, inputs: Node*) {
 
   val edges: mutable.Map[String, Edge] = mutable.Map()
 
@@ -40,14 +40,14 @@ class Node(val device: Device, val pythonFunction: PythonFunction, inputs: Node*
   }
 
   def getSerializable: Obj = {
-    val serializable_kwargs = ujson.copy(pythonFunction.kwargs)
+    val serializable_kwargs = ujson.copy(pythonUserNode.kwargs)
 
     // kwargs are not allowed to use parameter names that begin with "in" or "out". "storage" is also a reserved parameter.
     for ((k, v) <- edges) {
       serializable_kwargs(k) = v.id
     }
 
-    Obj("func_name" -> pythonFunction.name, "kwargs" -> serializable_kwargs, "code" -> pythonFunction.code)
+    Obj("class_name" -> pythonUserNode.name, "kwargs" -> serializable_kwargs, "code" -> pythonUserNode.code)
   }
 }
 

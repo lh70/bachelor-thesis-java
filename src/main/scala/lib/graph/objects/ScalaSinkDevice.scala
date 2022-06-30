@@ -12,9 +12,16 @@ class ScalaSinkDevice(maxTimeFrame: Int  = 100, maxValuesPerTimeFrame: Int  = 0)
 
   override def removeAssignment(assignmentId: String): Unit = {
     // Do nothing
+    // On a remote device this removes the assignment object referenced by assignmentId
+    // We do not track assignments by id locally currently
   }
 
   override def addAssignment(assignment: Obj): Unit = {
+    // The scala sink device can hav an arbitrary amount of incoming pipelines, as build by the graph.
+    // (As the pipeline-ids are created generically by the graph, we cannot distinguish between them.
+    //  As a result, more than one incoming pipeline makes no sense currently)
+    //
+    // On addAssignment we open those pipeline connections for further use of the values in scala
 
     val assignmentId = assignment("id").value.asInstanceOf[String]
 
