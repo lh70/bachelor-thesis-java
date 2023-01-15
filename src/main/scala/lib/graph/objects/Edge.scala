@@ -18,15 +18,15 @@ case class Edge(nodeFrom: Node, nodeTo: Node, id: String) {
       pipelineToDevice("type") = "input"
       pipelineToDevice("host") = "localhost"
       pipelineToDevice("port") = nodeFrom.device.port
-      pipelineToDevice("time_frame") = nodeTo.device.maxTimeFrame
-      pipelineToDevice("values_per_time_frame") = nodeTo.device.maxValuesPerTimeFrame
+      pipelineToDevice("time_frame_ms") = nodeTo.device.maxTimeFrameMs
+      pipelineToDevice("heartbeat_ms") = nodeTo.device.maxHeartbeatMs
     } else {
       pipelineFromDevice("type") = "output"
       pipelineToDevice("type") = "input"
       pipelineToDevice("host") = nodeFrom.device.host
       pipelineToDevice("port") = nodeFrom.device.port
-      pipelineToDevice("time_frame") = nodeTo.device.maxTimeFrame
-      pipelineToDevice("values_per_time_frame") = nodeTo.device.maxValuesPerTimeFrame
+      pipelineToDevice("time_frame_ms") = nodeTo.device.maxTimeFrameMs
+      pipelineToDevice("heartbeat_ms") = nodeTo.device.maxHeartbeatMs
     }
 
     (nodeFrom.device, pipelineFromDevice, nodeTo.device, pipelineToDevice)
@@ -37,7 +37,7 @@ object Edge {
   def apply(nodeFrom: Node, nodeTo: Node): Edge = new Edge(nodeFrom, nodeTo, nextId)
   private var idCounter: Int      = 0
 
-  def nextId =
+  def nextId: String =
     val res = Edge.idCounter.toString
     Edge.idCounter += 1
     res

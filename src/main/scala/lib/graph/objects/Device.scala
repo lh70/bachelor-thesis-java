@@ -11,11 +11,11 @@ import scala.collection.mutable.ListBuffer
 class Device(
     val host: String = "localhost",
     val port: Int = 8090,
-    val maxTimeFrame: Int = 100,
-    val maxValuesPerTimeFrame: Int = 0
+    val maxTimeFrameMs: Int = 100,
+    val maxHeartbeatMs: Int = 100
 ) {
 
-  val id = Device.nextID
+  val id: Int = Device.nextID
 
   override def toString: String = {
     "Device " + id + " " + host + ":" + port

@@ -1,3 +1,5 @@
 [submodule "submodules/s-connect-python"]
 	path = submodules/s-connect-python
 	url = git@github.com:lh70/s-connect-python.git
+    update = checkout
+    branch = master

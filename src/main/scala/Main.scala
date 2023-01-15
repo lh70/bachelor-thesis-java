@@ -10,7 +10,7 @@ import scala.util.Try
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val pc        = Device()
+    val pc        = Device(host="192.168.2.124")
     val scalaSink = ScalaSinkDevice()
 
     val devices = List(pc, scalaSink)

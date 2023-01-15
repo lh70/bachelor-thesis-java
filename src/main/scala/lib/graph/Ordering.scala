@@ -6,50 +6,126 @@ import lib.graph.objects
 import scala.collection.mutable
 
 object Ordering {
-  // holds sorted node list in reverse order
-  private val node_stack: mutable.ListBuffer[objects.Node] = mutable.ListBuffer()
-  // device order is inherited from the node order
-  private val device_stack: mutable.ListBuffer[objects.Device] = mutable.ListBuffer()
-  // dict to store visited information about each node
-  private val visited: mutable.Map[objects.Node, Boolean] = mutable.Map()
 
   def topologicalSort(nodes: List[Node]): (List[objects.Device], List[objects.Node]) = {
-    node_stack.clear()
-    device_stack.clear()
-    visited.clear()
+    // contains the current nodes to traverse -> if empty -> total graph was traversed
+    val traversalNodeList: mutable.ListBuffer[objects.Node] = mutable.ListBuffer()
 
-    for (node <- nodes) visited(node) = false
+    // filled with all unique edges
+    var edgesSet: Set[objects.Edge] = Set()
 
-    // simply iterate over all nodes. Gives one possible topologically correct order.
+    // get all source nodes to start traversal
     for (node <- nodes) {
-      if (!visited(node)) {
-        recursiveUtil(node)
+      var isSource: Boolean = true
+
+      for (edge <- node.edges) {
+        if (edge._1.startsWith("in")) {
+          isSource = false
+          // no break in scala?
+        }
+      }
+
+      if (isSource) {
+        traversalNodeList += node
+        edgesSet ++= node.edges.values
       }
     }
 
-    // reversed stack is correct order where input nodes to the graph are first
-    (device_stack.reverse.toList, node_stack.reverse.toList)
+    // starts with all unique edges -> should be empty after total graph traversal
+    val edges: mutable.ListBuffer[objects.Edge] = mutable.ListBuffer.empty ++ edgesSet.toList
+
+    // nodes are added in topologically correct order (from sources to sinks)
+    val resultNodeList: mutable.ListBuffer[objects.Node] = mutable.ListBuffer()
+
+    // move through whole graph
+    while (traversalNodeList.nonEmpty) {
+      val node: objects.Node = traversalNodeList.remove(0)
+      resultNodeList += node
+
+      // potential next nodes to add to traversal list are the current nodes outgoing edge nodes
+      var idxOut: Int = 0
+      while (node.edges.contains("out" + idxOut)) {
+        val nextEdge: objects.Edge = node.edges("out" + idxOut)
+
+        // skip this next-node if this branch was already covered
+        if (edges.contains(nextEdge)) {
+          // first occurrence is only occurrence due to Set filtering
+          edges.remove(edges.indexOf(nextEdge))
+
+          val nextNode: objects.Node = nextEdge.nodeTo
+
+          // also skip node if this is not the longest way to this node and there is another ingoing edge that will reach it
+          var noOtherIncomingEdges: Boolean = true
+          var idxIn: Int = 0
+          while (nextNode.edges.contains("in" + idxIn)) {
+            if (edges.contains(nextNode.edges("in" + idxIn))) {
+              noOtherIncomingEdges = false
+            }
+
+            idxIn += 1
+          }
+
+          if (noOtherIncomingEdges) {
+            traversalNodeList += nextNode
+          }
+        }
+
+        idxOut += 1
+      }
+
+    }
+
+    if (edges.isEmpty) {
+      (getDeviceList(resultNodeList.toList), resultNodeList.toList)
+    } else {
+      throw new Exception("circular dependencies in graph")
+    }
   }
 
-  // recursive function for depth first behaviour
-  private def recursiveUtil(node: objects.Node): Unit = {
-    visited(node) = true
+  private def getDeviceList(sortedNodeList: List[Node]): List[objects.Device] = {
+    val result: mutable.ListBuffer[objects.Device] = mutable.ListBuffer()
 
-    var idx = 0
-    while (node.edges.contains("out" + idx)) {
-      if (!visited(node.edges("out" + idx).nodeTo)) {
-        recursiveUtil(node.edges("out" + idx).nodeTo)
+    // this algorithm is far from optimal, but it works
+    for (node <- sortedNodeList) {
+      if (result.contains(node.device)) {
+        val devicesInFront: mutable.ListBuffer[objects.Device] = mutable.ListBuffer()
+        val devicesInBack: mutable.ListBuffer[objects.Device] = mutable.ListBuffer()
+
+        for (i <- result.indexOf(node.device)+1 until result.length) {
+          if (isDeviceInSourcesOf(node, result(i))) {
+            devicesInFront += result(i)
+          } else {
+            devicesInBack += result(i)
+          }
+        }
+
+        result.take(result.indexOf(node.device))  // exclusive node.device
+        result ++= devicesInFront
+        result += node.device
+        result ++= devicesInBack
+      } else {
+        result += node.device
       }
-      idx += 1
     }
 
-    // add node after each following node is already added
-    node_stack += node
+    result.toList
+  }
 
-    // a device may be the same for multiple nodes, so only add device if not already in stack
-    // warning: currently there is no check for circular device dependencies
-    if (!device_stack.contains(node.device)) {
-      device_stack += node.device
+  private def isDeviceInSourcesOf(node: objects.Node, device: objects.Device): Boolean = {
+    if (node.device == device) {
+      return true
     }
+
+    var isDeviceInSources: Boolean = false
+
+    var idxIn: Int = 0
+    while (node.edges.contains("in" + idxIn)) {
+      val nodeFrom: objects.Node = node.edges("in" + idxIn).nodeFrom
+      isDeviceInSources |= isDeviceInSourcesOf(nodeFrom, device)
+
+      idxIn += 1
+    }
+
+    isDeviceInSources
   }
 }

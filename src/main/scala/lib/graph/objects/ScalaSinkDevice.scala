@@ -5,8 +5,8 @@ import ujson.Obj
 import java.net.Socket
 import scala.collection.mutable
 
-class ScalaSinkDevice(maxTimeFrame: Int  = 100, maxValuesPerTimeFrame: Int  = 0)
-    extends Device(port = -1, maxTimeFrame = maxTimeFrame, maxValuesPerTimeFrame = maxValuesPerTimeFrame) {
+class ScalaSinkDevice(maxTimeFrameMs: Int  = 100, maxHeartbeatMs: Int  = 100)
+    extends Device(port = -1, maxTimeFrameMs = maxTimeFrameMs, maxHeartbeatMs = maxHeartbeatMs) {
 
   val pipelines: mutable.Map[String, Connection] = mutable.Map()
 
@@ -26,9 +26,10 @@ class ScalaSinkDevice(maxTimeFrame: Int  = 100, maxValuesPerTimeFrame: Int  = 0)
     val assignmentId = assignment("id").value.asInstanceOf[String]
 
     for ((pipelineId, info) <- assignment("pipelines").obj) {
-      val pipelineHost      = info("host").str
-      val pipelinePort      = info("port").num.toInt
-      val pipelineTimeFrame = info("time_frame").num.toInt
+      val pipelineHost        = info("host").str
+      val pipelinePort        = info("port").num.toInt
+      val pipelineTimeFrameMs = info("time_frame_ms").num.toInt
+      val pipelineHeartbeatMs = info("heartbeat_ms").num.toInt
 
       val conn = new Connection(new Socket(pipelineHost, pipelinePort))
 
@@ -38,8 +39,8 @@ class ScalaSinkDevice(maxTimeFrame: Int  = 100, maxValuesPerTimeFrame: Int  = 0)
           "content" -> Obj(
             "assignment_id"         -> assignmentId,
             "pipe_id"               -> pipelineId,
-            "time_frame"            -> pipelineTimeFrame,
-            "values_per_time_frame" -> 0
+            "time_frame_ms"         -> pipelineTimeFrameMs,
+            "heartbeat_ms"          -> pipelineHeartbeatMs
           )
         )
       ))
